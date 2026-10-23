@@ -8,3 +8,5 @@ pydub
 pypdf
 docx2txt
 duckduckgo-search
+google-generativeai
+Pillow
