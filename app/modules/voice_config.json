@@ -1,0 +1,19 @@
+{
+  "mode": "wake_word",
+  "language": "es-ES",
+  "save_logs": true,
+  "log_directory": "voice_logs",
+  "energy_threshold": 300,
+  "dynamic_energy": true,
+  "pause_threshold": 0.8,
+  "phrase_time_limit": 10,
+  "timeout": 3,
+  "voice_rate": 180,
+  "voice_volume": 0.9,
+  "voice_gender": "female",
+  "wake_words": ["best ia", "bestia", "best-ia", "asistente"],
+  "wake_word_sensitivity": 0.7,
+  "mic_device_index": 1,
+  "sample_rate": 16000,
+  "chunk_size": 1024
+}

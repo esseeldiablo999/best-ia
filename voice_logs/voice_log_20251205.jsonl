@@ -1,0 +1,6 @@
+{"timestamp": "2025-12-05T07:36:58.786514", "type": "listening_started", "data": {"mode": "wake_word"}}
+{"timestamp": "2025-12-05T07:37:05.453530", "type": "speech_recognized", "data": {"text": "bestia dime la capital de méxico", "timestamp": "2025-12-05T07:37:05.453530"}}
+{"timestamp": "2025-12-05T07:37:05.458028", "type": "command_received", "data": {"text": "dime la capital de méxico", "timestamp": "2025-12-05T07:37:05.458028", "mode": "wake_word"}}
+{"timestamp": "2025-12-05T07:38:09.795716", "type": "speech_recognized", "data": {"text": "bestia cuál es la capital de méxico", "timestamp": "2025-12-05T07:38:09.795716"}}
+{"timestamp": "2025-12-05T07:38:09.801076", "type": "command_received", "data": {"text": "cuál es la capital de méxico", "timestamp": "2025-12-05T07:38:09.801076", "mode": "wake_word"}}
+{"timestamp": "2025-12-05T07:39:04.724934", "type": "listening_stopped", "data": {}}

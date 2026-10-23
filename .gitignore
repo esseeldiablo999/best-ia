@@ -1,0 +1,4 @@
+# BEST-IA 
+.env 
+venv/ 
+__pycache__/ 
