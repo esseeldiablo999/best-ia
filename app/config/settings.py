@@ -1,9 +1,20 @@
 import os
 from pathlib import Path
-from dotenv import load_dotenv
 
-# Cargar variables de entorno
-load_dotenv()
+# Intentar cargar desde .env (para cuando lo uses en tu computadora local)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+# Si estamos en la nube de Streamlit, cargar la API Key de los Secrets
+try:
+    import streamlit as st
+    if "DEEPSEEK_API_KEY" in st.secrets:
+        os.environ["DEEPSEEK_API_KEY"] = st.secrets["DEEPSEEK_API_KEY"]
+except Exception:
+    pass
 
 # Obtener ruta base del proyecto
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
