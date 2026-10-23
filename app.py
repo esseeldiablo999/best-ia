@@ -275,23 +275,37 @@ def render_system_info() -> None:
     st.caption(f"💻 ThinkPad T480s | 🕒 {datetime.now().strftime('%H:%M:%S')}")
 
 def render_file_analyzer() -> None:
-    """Interfaz para subir y analizar documentos"""
-    with st.expander("📁 Analizar un Documento (PDF, Word, TXT)"):
-        uploaded_file = st.file_uploader("Sube tu archivo aquí", type=["pdf", "docx", "txt"])
+    """Interfaz para subir y analizar documentos o imágenes"""
+    with st.expander("📁 Analizar Documento o Imagen"):
+        # AHORA ACEPTA IMÁGENES TAMBIÉN
+        uploaded_file = st.file_uploader(
+            "Sube tu archivo aquí (PDF, Word, TXT, Imagen)", 
+            type=["pdf", "docx", "txt", "png", "jpg", "jpeg"]
+        )
         
         if uploaded_file is not None:
             if st.button("📄 Leer y Analizar", use_container_width=True, type="primary"):
-                from app.modules.file_processor import FileProcessor
+                filename = uploaded_file.name.lower()
                 
-                with st.spinner("Extrayendo texto del documento..."):
-                    doc_text = FileProcessor.extract_text(uploaded_file)
-                
-                if "⚠️" in doc_text or "❌" in doc_text:
-                    st.error(doc_text)
+                # Si es una imagen, la guardamos para Gemini
+                if filename.endswith((".png", ".jpg", ".jpeg")):
+                    st.session_state['active_image'] = uploaded_file
+                    st.session_state['active_document'] = None
+                    st.success("✅ Imagen cargada. Pídele a BEST-IA que la analice en el chat.")
                 else:
-                    st.success(f"✅ Documento leído ({len(doc_text)} caracteres).")
-                    st.session_state['active_document'] = doc_text
-                    st.info("🤖 BEST-IA está listo. Hazle una pregunta sobre el documento en el chat de abajo.")
+                    # Si es un documento, extraemos el texto
+                    from app.modules.file_processor import FileProcessor
+                    
+                    with st.spinner("Extrayendo texto del documento..."):
+                        doc_text = FileProcessor.extract_text(uploaded_file)
+                    
+                    if "⚠️" in doc_text or "❌" in doc_text:
+                        st.error(doc_text)
+                    else:
+                        st.success(f"✅ Documento leído ({len(doc_text)} caracteres).")
+                        st.session_state['active_document'] = doc_text
+                        st.session_state['active_image'] = None
+                        st.info("🤖 BEST-IA está listo. Hazle una pregunta sobre el documento.")
 
 def render_web_toggle() -> None:
     """Botón para activar/desactivar la búsqueda en internet"""
@@ -342,6 +356,7 @@ def render_chat_history() -> None:
 
 def process_text_input() -> None:
     prompt = st.chat_input(f"Escribe tu mensaje, {st.session_state.user_name}...")
+    
     if prompt:
         with st.chat_message("user", avatar="🧑‍💻"):
             st.markdown(prompt)
@@ -354,20 +369,29 @@ def process_text_input() -> None:
         
         with st.chat_message("assistant", avatar="🤖"):
             with st.spinner("🤖 Pensando..."):
-                # 1. Si hay un documento activo
-                if 'active_document' in st.session_state and st.session_state['active_document']:
+                # 1. Si hay una imagen activa (Gemini)
+                if st.session_state.get('active_image'):
+                    st.info("🖼️ Analizando imagen con Gemini...")
+                    from app.modules.vision_module import analyze_image
+                    respuesta = {
+                        "success": True, 
+                        "answer": analyze_image(st.session_state['active_image'], prompt)
+                    }
+                # 2. Si hay un documento activo
+                elif st.session_state.get('active_document'):
                     respuesta = ai_client.analyze_document(
                         st.session_state['active_document'], 
                         prompt, 
                         st.session_state.current_temperature
                     )
-                # 2. Si la búsqueda web está activada
+                # 3. Si está activada la búsqueda web
                 elif st.session_state.get('use_web_search', False):
                     respuesta = ai_client.chat_with_web_search(prompt, st.session_state.current_temperature)
-                # 3. Chat normal
+                # 4. Chat normal
                 else:
                     respuesta = ai_client.chat(prompt, st.session_state.current_temperature)
                 
+                # Mostrar la respuesta
                 if respuesta.get("success"):
                     st.markdown(respuesta["answer"])
                     st.session_state.messages.append({
