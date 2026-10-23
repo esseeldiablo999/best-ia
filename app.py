@@ -62,9 +62,19 @@ def initialize_session_state() -> None:
 def load_voice_module():
     """Carga el módulo de voz de forma segura"""
     try:
-        from app.modules.voice_module import voice_module
+        import os
+        # Si estamos en Windows (tu PC), cargamos la voz. Si es Linux (la nube), la ignoramos.
+        if os.name == 'nt':
+            from app.modules.voice_module import voice_module
+        else:
+            voice_module = None
+
+        # Si es None (estamos en la nube), no hacemos nada más y salimos
+        if voice_module is None:
+            st.session_state.voice_module_available = False
+            return None
         
-        # Verificar métodos esenciales
+        # Verificar métodos esenciales (solo si estamos en Windows)
         required_methods = ['start_listening', 'stop_listening', 'speak', 'test_microphone']
         for method in required_methods:
             if not hasattr(voice_module, method):
@@ -81,7 +91,7 @@ def load_voice_module():
         st.session_state.voice_module_available = False
         print(f"⚠️ Error cargando voice_module: {e}")
         return None
-
+    
 def process_voice_input() -> bool:
     """
     Procesa la entrada de voz - VERSIÓN OPTIMIZADA
