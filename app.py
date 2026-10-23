@@ -294,7 +294,9 @@ def render_file_analyzer() -> None:
                     st.info("🤖 BEST-IA está listo. Hazle una pregunta sobre el documento en el chat de abajo.")
 
 def render_chat_history() -> None:
+    """Renderiza el historial del chat"""
     if st.session_state.messages:
+        # Si hay mensajes (ya sea de la sesión o de la base de datos), los mostramos
         for msg in st.session_state.messages:
             role = msg.get("role", "assistant")
             avatar = "🧑‍💻" if role == "user" else "🤖"
@@ -306,7 +308,26 @@ def render_chat_history() -> None:
                 else:
                     st.markdown(content)
     else:
-        st.info("💬 No hay mensajes aún. ¡Escribe algo!")
+        # Si está totalmente vacío, mostramos una tarjeta premium
+        st.markdown(f"""
+        <div style='background: linear-gradient(135deg, {settings.DARK_CARD}, #2D2D5C);
+                    padding: 2rem;
+                    border-radius: 15px;
+                    margin: 1rem 0;
+                    text-align: center;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    box-shadow: 0 10px 30px rgba(110, 68, 255, 0.2);'>
+            <h2 style='color: {settings.PRIMARY_COLOR}; margin-top: 0; font-size: 1.8rem;'>
+                ✨ ¡Bienvenido a BEST-IA!
+            </h2>
+            <p style='color: #B0B0D0; font-size: 1.1rem; margin-bottom: 0;'>
+                Soy tu asistente personal. Puedes escribirme, subirme un documento o hablarme por micrófono.
+            </p>
+            <p style='color: #888; font-size: 0.9rem; margin-top: 10px;'>
+                (Escribe tu primer mensaje abajo para comenzar)
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
 
 def process_text_input() -> None:
     prompt = st.chat_input(f"Escribe tu mensaje, {st.session_state.user_name}...")
