@@ -372,10 +372,20 @@ def process_text_input() -> None:
                 # 1. Si hay una imagen activa (Gemini)
                 if st.session_state.get('active_image'):
                     st.info("🖼️ Analizando imagen con Gemini...")
-                    from app.modules.vision_module import analyze_image
-                    respuesta = {
-                        "success": True, 
-                        "answer": analyze_image(st.session_state['active_image'], prompt)
+                                    # 1. Si es una imagen
+                if st.session_state.get('active_image'):
+                    st.info("🖼️ Analizando imagen con Gemini...")
+                    try:
+                        from app.modules.vision_module import analyze_image
+                        respuesta = {
+                            "success": True, 
+                            "answer": analyze_image(st.session_state['active_image'], prompt)
+                        }
+                    except Exception as e:
+                        # Si falla la importación o el análisis, damos un aviso elegante
+                        st.error(f"⚠️ Error con Gemini: {str(e)}")
+                        st.warning("Asegúrate de tener 'google-generativeai' y 'Pillow' en tu requirements.txt y haber reiniciado la app.")
+                        respuesta = {"success": False, "answer": "Error de módulo de visión."}
                     }
                 # 2. Si hay un documento activo
                 elif st.session_state.get('active_document'):
