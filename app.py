@@ -293,6 +293,17 @@ def render_file_analyzer() -> None:
                     st.session_state['active_document'] = doc_text
                     st.info("🤖 BEST-IA está listo. Hazle una pregunta sobre el documento en el chat de abajo.")
 
+def render_web_toggle() -> None:
+    """Botón para activar/desactivar la búsqueda en internet"""
+    if 'use_web_search' not in st.session_state:
+        st.session_state.use_web_search = False
+        
+    st.session_state.use_web_search = st.toggle(
+        "🌐 Activar búsqueda en internet", 
+        value=st.session_state.use_web_search,
+        help="Si está activado, BEST-IA buscará en la web antes de responder."
+    )
+
 def render_chat_history() -> None:
     """Renderiza el historial del chat"""
     if st.session_state.messages:
@@ -343,12 +354,17 @@ def process_text_input() -> None:
         
         with st.chat_message("assistant", avatar="🤖"):
             with st.spinner("🤖 Pensando..."):
+                # 1. Si hay un documento activo
                 if 'active_document' in st.session_state and st.session_state['active_document']:
                     respuesta = ai_client.analyze_document(
                         st.session_state['active_document'], 
                         prompt, 
                         st.session_state.current_temperature
                     )
+                # 2. Si la búsqueda web está activada
+                elif st.session_state.get('use_web_search', False):
+                    respuesta = ai_client.chat_with_web_search(prompt, st.session_state.current_temperature)
+                # 3. Chat normal
                 else:
                     respuesta = ai_client.chat(prompt, st.session_state.current_temperature)
                 
@@ -406,6 +422,7 @@ def main():
         st.rerun()
     
     st.markdown(f"### 💬 CHAT CON BEST-IA")
+    render_web_toggle() 
     render_file_analyzer()  # <-- AÑADE ESTA LÍNEA AQUÍ
     render_chat_history()
     process_text_input()

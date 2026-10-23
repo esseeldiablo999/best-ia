@@ -6,8 +6,8 @@ import os
 from datetime import datetime
 
 # Creamos la carpeta data si no existe
-os.makedirs("data", exist_ok=True)
-DB_PATH = "data/bestia.db"
+
+DB_PATH = "bestia.db"  # Guardar directo en la raíz
 
 def init_db():
     """Crea la tabla de historial si no existe"""

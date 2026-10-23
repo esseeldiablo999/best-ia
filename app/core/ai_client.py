@@ -147,6 +147,26 @@ class AIClient:
                 "answer": f"Error: {str(e)}",
                 "error": str(e)
             }
+    def chat_with_web_search(self, prompt: str, temperature: float = 0.7) -> dict:
+        """Busca en internet y luego responde con esa info"""
+        from app.modules.web_search import search_web
+        
+        # 1. Buscar en internet
+        web_info = search_web(prompt)
+        
+        # 2. Crear un prompt con la info
+        augmented_prompt = f"""
+        Usa esta información de internet para responder a la pregunta del usuario.
+        Si la información es útil, úsala. Si no, responde con tu conocimiento.
+        
+        INFORMACIÓN DE INTERNET:
+        {web_info}
+        
+        PREGUNTA DEL USUARIO:
+        {prompt}
+        """
+        # 3. Usar el chat normal
+        return self.chat(augmented_prompt, temperature)
     def analyze_document(self, document_text: str, question: str, temperature: float = 0.5) -> dict:
         """Analiza un documento largo basándose en una pregunta"""
         if not self.client:

@@ -7,3 +7,4 @@ SpeechRecognition
 pydub
 pypdf
 docx2txt
+duckduckgo-search
