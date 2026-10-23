@@ -8,11 +8,15 @@ try:
 except ImportError:
     pass
 
-# Si estamos en la nube de Streamlit, cargar la API Key de los Secrets
+# Si estamos en la nube de Streamlit, cargar las API Keys de los Secrets
 try:
     import streamlit as st
     if "DEEPSEEK_API_KEY" in st.secrets:
         os.environ["DEEPSEEK_API_KEY"] = st.secrets["DEEPSEEK_API_KEY"]
+    if "SERPER_API_KEY" in st.secrets:
+        os.environ["SERPER_API_KEY"] = st.secrets["SERPER_API_KEY"]
+    if "GEMINI_API_KEY" in st.secrets:
+        os.environ["GEMINI_API_KEY"] = st.secrets["GEMINI_API_KEY"]
 except Exception:
     pass
 
@@ -29,6 +33,8 @@ class Settings:
     
     # 🔐 API Keys
     DEEPSEEK_API_KEY: str = os.getenv("DEEPSEEK_API_KEY", "")
+    SERPER_API_KEY: str = os.getenv("SERPER_API_KEY", "")
+    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
     
     # 🎨 Configuración de tema
     PRIMARY_COLOR: str = os.getenv("PRIMARY_COLOR", "#6E44FF")
