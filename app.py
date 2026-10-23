@@ -372,9 +372,6 @@ def process_text_input() -> None:
                 # 1. Si hay una imagen activa (Gemini)
                 if st.session_state.get('active_image'):
                     st.info("🖼️ Analizando imagen con Gemini...")
-                                    # 1. Si es una imagen
-                if st.session_state.get('active_image'):
-                    st.info("🖼️ Analizando imagen con Gemini...")
                     try:
                         from app.modules.vision_module import analyze_image
                         respuesta = {
@@ -382,11 +379,10 @@ def process_text_input() -> None:
                             "answer": analyze_image(st.session_state['active_image'], prompt)
                         }
                     except Exception as e:
-                        # Si falla la importación o el análisis, damos un aviso elegante
                         st.error(f"⚠️ Error con Gemini: {str(e)}")
-                        st.warning("Asegúrate de tener 'google-generativeai' y 'Pillow' en tu requirements.txt y haber reiniciado la app.")
+                        st.warning("Asegúrate de tener 'google-generativeai' y 'Pillow' en tu requirements.txt.")
                         respuesta = {"success": False, "answer": "Error de módulo de visión."}
-                    }
+                
                 # 2. Si hay un documento activo
                 elif st.session_state.get('active_document'):
                     respuesta = ai_client.analyze_document(
@@ -394,9 +390,11 @@ def process_text_input() -> None:
                         prompt, 
                         st.session_state.current_temperature
                     )
+                
                 # 3. Si está activada la búsqueda web
                 elif st.session_state.get('use_web_search', False):
                     respuesta = ai_client.chat_with_web_search(prompt, st.session_state.current_temperature)
+                
                 # 4. Chat normal
                 else:
                     respuesta = ai_client.chat(prompt, st.session_state.current_temperature)
@@ -413,7 +411,6 @@ def process_text_input() -> None:
                     st.session_state.total_tokens += respuesta.get("tokens", 0)
                 else:
                     st.error(f"Error: {respuesta.get('answer', 'Error')}")
-
 # ==================== FUNCIÓN PRINCIPAL ====================
 
 def main():
