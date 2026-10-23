@@ -10,6 +10,7 @@ import traceback
 from datetime import datetime
 
 # Importaciones locales
+from app.core.database import init_db, save_message, get_all_messages, clear_history
 from app.config.settings import settings
 from app.core.ai_client import ai_client
 from app.config.themes import theme_manager
@@ -39,6 +40,11 @@ def initialize_session_state() -> None:
     for key, default_value in session_defaults.items():
         if key not in st.session_state:
             st.session_state[key] = default_value
+
+    # Inicializar Base de Datos y cargar historial
+    init_db()
+    if not st.session_state.get('messages'):
+        st.session_state.messages = get_all_messages()
 
 # ==================== FUNCIONES DE VOZ ====================
 
