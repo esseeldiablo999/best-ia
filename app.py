@@ -268,6 +268,25 @@ def render_system_info() -> None:
     st.divider()
     st.caption(f"💻 ThinkPad T480s | 🕒 {datetime.now().strftime('%H:%M:%S')}")
 
+def render_file_analyzer() -> None:
+    """Interfaz para subir y analizar documentos"""
+    with st.expander("📁 Analizar un Documento (PDF, Word, TXT)"):
+        uploaded_file = st.file_uploader("Sube tu archivo aquí", type=["pdf", "docx", "txt"])
+        
+        if uploaded_file is not None:
+            if st.button("📄 Leer y Analizar", use_container_width=True, type="primary"):
+                from app.modules.file_processor import FileProcessor
+                
+                with st.spinner("Extrayendo texto del documento..."):
+                    doc_text = FileProcessor.extract_text(uploaded_file)
+                
+                if "⚠️" in doc_text or "❌" in doc_text:
+                    st.error(doc_text)
+                else:
+                    st.success(f"✅ Documento leído ({len(doc_text)} caracteres).")
+                    st.session_state['active_document'] = doc_text
+                    st.info("🤖 BEST-IA está listo. Hazle una pregunta sobre el documento en el chat de abajo.")
+
 def render_chat_history() -> None:
     if st.session_state.messages:
         for msg in st.session_state.messages:
@@ -297,7 +316,15 @@ def process_text_input() -> None:
         
         with st.chat_message("assistant", avatar="🤖"):
             with st.spinner("🤖 Pensando..."):
-                respuesta = ai_client.chat(prompt, st.session_state.current_temperature)
+                if 'active_document' in st.session_state and st.session_state['active_document']:
+                    respuesta = ai_client.analyze_document(
+                        st.session_state['active_document'], 
+                        prompt, 
+                        st.session_state.current_temperature
+                    )
+                else:
+                    respuesta = ai_client.chat(prompt, st.session_state.current_temperature)
+                
                 if respuesta.get("success"):
                     st.markdown(respuesta["answer"])
                     st.session_state.messages.append({
@@ -352,6 +379,7 @@ def main():
         st.rerun()
     
     st.markdown(f"### 💬 CHAT CON BEST-IA")
+    render_file_analyzer()  # <-- AÑADE ESTA LÍNEA AQUÍ
     render_chat_history()
     process_text_input()
 

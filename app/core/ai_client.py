@@ -147,7 +147,44 @@ class AIClient:
                 "answer": f"Error: {str(e)}",
                 "error": str(e)
             }
-    
+    def analyze_document(self, document_text: str, question: str, temperature: float = 0.5) -> dict:
+        """Analiza un documento largo basándose en una pregunta"""
+        if not self.client:
+            return self._demo_response("Análisis de documento (Modo Demo)")
+
+        try:
+            safe_text = document_text[:15000]
+            
+            prompt = f"""
+            El usuario ha subido un documento. Aquí está su contenido:
+            ---
+            {safe_text}
+            ---
+            
+            Basándote EXCLUSIVAMENTE en el texto anterior, responde a esta pregunta:
+            {question}
+            """
+
+            messages = [
+                {"role": "system", "content": "Eres BEST-IA, un asistente experto en analizar documentos."},
+                {"role": "user", "content": prompt}
+            ]
+
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                temperature=temperature,
+                max_tokens=settings.AI_MAX_TOKENS
+            )
+
+            return {
+                "success": True,
+                "answer": response.choices[0].message.content,
+                "tokens": response.usage.total_tokens if response.usage else 0
+            }
+        except Exception as e:
+            return {"success": False, "answer": f"Error analizando documento: {str(e)}"}
+
     def chat_with_custom_prompt(self, message: str, custom_prompt: str, temperature: float = 0.7) -> Dict[str, Any]:
         """Chat con prompt personalizado"""
         messages = [
