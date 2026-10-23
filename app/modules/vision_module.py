@@ -11,7 +11,7 @@ def analyze_image(uploaded_file, prompt):
             return "⚠️ Falta configurar la API Key de Gemini en los Secrets."
         
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-2.5-flash')
+        model = genai.GenerativeModel('gemini-3.8-flash')
         
         # Leer la imagen subida
         img = Image.open(io.BytesIO(uploaded_file.getvalue()))
