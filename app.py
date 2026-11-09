@@ -424,9 +424,36 @@ def main():
     )
 
         # Conectar el manifiesto PWA
-    st.markdown('<link rel="manifest" href="/manifest.json">', unsafe_allow_html=True)
-    st.markdown('<meta name="theme-color" content="#6E44FF">', unsafe_allow_html=True)
-
+       # Forzar PWA con manifest en Base64 (para que ignore a Streamlit)
+    import base64
+    import json
+    
+    manifest_data = {
+        "name": "BEST-IA",
+        "short_name": "BEST-IA",
+        "description": "Tu asistente personal de IA",
+        "start_url": ".",
+        "display": "standalone",
+        "background_color": "#0F0F1E",
+        "theme_color": "#6E44FF",
+        "icons": [{
+            "src": "https://cdn-icons-png.flaticon.com/512/4712/4712035.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }]
+    }
+    
+    # Convertir a Base64
+    manifest_json = json.dumps(manifest_data)
+    manifest_b64 = base64.b64encode(manifest_json.encode('utf-8')).decode('utf-8')
+    
+    # Inyectar en el HTML
+    st.markdown(f'''
+        <link rel="manifest" href="data:application/manifest+json;base64,{manifest_b64}">
+        <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/4712/4712035.png">
+        <meta name="theme-color" content="#6E44FF">
+    ''', unsafe_allow_html=True)
+    
     # Aplicar tema base
     st.markdown(theme_manager.get_css(), unsafe_allow_html=True)
     
