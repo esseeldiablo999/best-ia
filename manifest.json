@@ -1,0 +1,16 @@
+{
+  "name": "BEST-IA",
+  "short_name": "BEST-IA",
+  "description": "Tu asistente personal de Inteligencia Artificial",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0F0F1E",
+  "theme_color": "#6E44FF",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/4712/4712035.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

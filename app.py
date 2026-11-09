@@ -422,7 +422,11 @@ def main():
         layout="wide",
         initial_sidebar_state="expanded"
     )
-    
+
+        # Conectar el manifiesto PWA
+    st.markdown('<link rel="manifest" href="/manifest.json">', unsafe_allow_html=True)
+    st.markdown('<meta name="theme-color" content="#6E44FF">', unsafe_allow_html=True)
+
     # Aplicar tema base
     st.markdown(theme_manager.get_css(), unsafe_allow_html=True)
     
