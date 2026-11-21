@@ -10,3 +10,7 @@ docx2txt
 duckduckgo-search
 google-generativeai
 Pillow
+pandas
+openpyxl
+xlsxwriter
+plotly

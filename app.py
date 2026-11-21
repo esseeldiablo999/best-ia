@@ -10,11 +10,12 @@ import traceback
 from datetime import datetime
 
 # Importaciones locales
+from app.modules.data_analyzer import read_dataframe, generate_summary, generate_chart
 from app.core.database import init_db, save_message, get_all_messages, clear_history
 from app.config.settings import settings
 from app.core.ai_client import ai_client
 from app.config.themes import theme_manager
-
+ 
 # ==================== INICIALIZACIÓN DE SESSION STATE ====================
 
 def initialize_session_state() -> None:
@@ -100,7 +101,7 @@ def process_voice_input() -> bool:
             "user_name": st.session_state.user_name
         })
         
-        current_temp = st.session_state.get("current_temperature", 0.7)
+        current_temp = st.session_state.get ("current_temperature", 0.7)
         
         with st.chat_message("assistant", avatar="🤖"):
             with st.spinner("🤖 Procesando voz..."):
@@ -275,13 +276,68 @@ def render_system_info() -> None:
     st.caption(f"💻 ThinkPad T480s | 🕒 {datetime.now().strftime('%H:%M:%S')}")
 
 def render_file_analyzer() -> None:
-    """Interfaz para subir y analizar documentos o imágenes"""
-    with st.expander("📁 Analizar Documento o Imagen"):
-        # AHORA ACEPTA IMÁGENES TAMBIÉN
+    """Interfaz para subir y analizar documentos, imágenes o Excel/CSV"""
+    with st.expander("📁 Analizar Documento, Imagen o Excel/CSV"):
         uploaded_file = st.file_uploader(
-            "Sube tu archivo aquí (PDF, Word, TXT, Imagen)", 
-            type=["pdf", "docx", "txt", "png", "jpg", "jpeg"]
+            "Sube tu archivo aquí", 
+            type=["pdf", "docx", "txt", "png", "jpg", "jpeg", "csv", "xlsx", "xls"]
         )
+        
+        if uploaded_file is not None:
+            if st.button("📄 Leer y Analizar", use_container_width=True, type="primary"):
+                filename = uploaded_file.name.lower()
+                
+                # 1. Si es una imagen
+                if filename.endswith((".png", ".jpg", ".jpeg")):
+                    st.session_state['active_image'] = uploaded_file
+                    st.session_state['active_document'] = None
+                    st.session_state['active_dataframe'] = None
+                    st.success("✅ Imagen cargada. Pídele a BEST-IA que la analice en el chat.")
+                
+                # 2. Si es un Excel o CSV
+                elif filename.endswith((".csv", ".xlsx", ".xls")):
+                    df = read_dataframe(uploaded_file)
+                    if df is not None:
+                        st.session_state['active_dataframe'] = df
+                        st.session_state['active_document'] = None
+                        st.session_state['active_image'] = None
+                        
+                        st.success(f"✅ Datos cargados: {df.shape[0]} filas y {df.shape[1]} columnas.")
+                        st.dataframe(df.head()) # Mostrar vista previa
+                        
+                        # Generador de gráficas automático
+                        st.subheader("📊 Generar Gráfica")
+                        col1, col2, col3 = st.columns(3)
+                        with col1:
+                            x_col = st.selectbox("Eje X", df.columns)
+                        with col2:
+                            y_col = st.selectbox("Eje Y", df.columns)
+                        with col3:
+                            chart_type = st.selectbox("Tipo", ["bar", "line", "pie"])
+                            
+                        if st.button("Graficar Datos"):
+                            fig = generate_chart(df, x_col, y_col, chart_type)
+                            if fig:
+                                st.plotly_chart(fig)
+                            else:
+                                st.error("No se pudo generar la gráfica con esas columnas.")
+                    else:
+                        st.error("No se pudo leer el archivo de Excel/CSV.")
+                
+                # 3. Si es un documento de texto
+                else:
+                    from app.modules.file_processor import FileProcessor
+                    with st.spinner("Extrayendo texto..."):
+                        doc_text = FileProcessor.extract_text(uploaded_file)
+                    
+                    if "⚠️" in doc_text or "❌" in doc_text:
+                        st.error(doc_text)
+                    else:
+                        st.success(f"✅ Documento leído.")
+                        st.session_state['active_document'] = doc_text
+                        st.session_state['active_image'] = None
+                        st.session_state['active_dataframe'] = None
+                        st.info("🤖 BEST-IA está listo. Hazle una pregunta sobre el documento.")
         
         if uploaded_file is not None:
             if st.button("📄 Leer y Analizar", use_container_width=True, type="primary"):
@@ -383,7 +439,14 @@ def process_text_input() -> None:
                         st.warning("Asegúrate de tener 'google-generativeai' y 'Pillow' en tu requirements.txt.")
                         respuesta = {"success": False, "answer": "Error de módulo de visión."}
                 
-                # 2. Si hay un documento activo
+                # 2. Si hay un archivo de Excel/CSV activo
+                elif st.session_state.get('active_dataframe') is not None:
+                    df = st.session_state['active_dataframe']
+                    data_summary = generate_summary(df)
+                    augmented_prompt = f"El usuario está preguntando sobre estos datos:\n\n{data_summary}\n\nPregunta: {prompt}"
+                    respuesta = ai_client.chat(augmented_prompt, st.session_state.current_temperature)
+                
+                # 3. Si hay un documento de texto activo
                 elif st.session_state.get('active_document'):
                     respuesta = ai_client.analyze_document(
                         st.session_state['active_document'], 
@@ -391,11 +454,11 @@ def process_text_input() -> None:
                         st.session_state.current_temperature
                     )
                 
-                # 3. Si está activada la búsqueda web
+                # 4. Si está activada la búsqueda web
                 elif st.session_state.get('use_web_search', False):
                     respuesta = ai_client.chat_with_web_search(prompt, st.session_state.current_temperature)
                 
-                # 4. Chat normal
+                # 5. Chat normal
                 else:
                     respuesta = ai_client.chat(prompt, st.session_state.current_temperature)
                 
