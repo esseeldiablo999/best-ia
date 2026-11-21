@@ -284,7 +284,7 @@ def render_file_analyzer() -> None:
         )
         
         if uploaded_file is not None:
-            if st.button("📄 Leer y Analizar", use_container_width=True, type="primary"):
+            if st.button("📄 Leer y Analizar", use_container_width=True, type="primary", key="btn_analizar_archivo"):
                 filename = uploaded_file.name.lower()
                 
                 # 1. Si es una imagen
@@ -315,7 +315,8 @@ def render_file_analyzer() -> None:
                         with col3:
                             chart_type = st.selectbox("Tipo", ["bar", "line", "pie"])
                             
-                        if st.button("Graficar Datos"):
+                        # ¡AQUÍ ESTÁ LA CORRECCIÓN CON LA KEY ÚNICA!
+                        if st.button("Graficar Datos", key="btn_graficar_datos"):
                             fig = generate_chart(df, x_col, y_col, chart_type)
                             if fig:
                                 st.plotly_chart(fig)
@@ -338,31 +339,7 @@ def render_file_analyzer() -> None:
                         st.session_state['active_image'] = None
                         st.session_state['active_dataframe'] = None
                         st.info("🤖 BEST-IA está listo. Hazle una pregunta sobre el documento.")
-        
-        if uploaded_file is not None:
-            if st.button("📄 Leer y Analizar", use_container_width=True, type="primary"):
-                filename = uploaded_file.name.lower()
-                
-                # Si es una imagen, la guardamos para Gemini
-                if filename.endswith((".png", ".jpg", ".jpeg")):
-                    st.session_state['active_image'] = uploaded_file
-                    st.session_state['active_document'] = None
-                    st.success("✅ Imagen cargada. Pídele a BEST-IA que la analice en el chat.")
-                else:
-                    # Si es un documento, extraemos el texto
-                    from app.modules.file_processor import FileProcessor
-                    
-                    with st.spinner("Extrayendo texto del documento..."):
-                        doc_text = FileProcessor.extract_text(uploaded_file)
-                    
-                    if "⚠️" in doc_text or "❌" in doc_text:
-                        st.error(doc_text)
-                    else:
-                        st.success(f"✅ Documento leído ({len(doc_text)} caracteres).")
-                        st.session_state['active_document'] = doc_text
-                        st.session_state['active_image'] = None
-                        st.info("🤖 BEST-IA está listo. Hazle una pregunta sobre el documento.")
-
+                        
 def render_web_toggle() -> None:
     """Botón para activar/desactivar la búsqueda en internet"""
     if 'use_web_search' not in st.session_state:
