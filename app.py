@@ -339,7 +339,7 @@ def render_file_analyzer() -> None:
                         st.session_state['active_image'] = None
                         st.session_state['active_dataframe'] = None
                         st.info("🤖 BEST-IA está listo. Hazle una pregunta sobre el documento.")
-                        
+
 def render_web_toggle() -> None:
     """Botón para activar/desactivar la búsqueda en internet"""
     if 'use_web_search' not in st.session_state:
@@ -420,7 +420,16 @@ def process_text_input() -> None:
                 elif st.session_state.get('active_dataframe') is not None:
                     df = st.session_state['active_dataframe']
                     data_summary = generate_summary(df)
-                    augmented_prompt = f"El usuario está preguntando sobre estos datos:\n\n{data_summary}\n\nPregunta: {prompt}"
+                    augmented_prompt = f"""
+Eres un analista de datos experto. El usuario te ha subido un archivo con los siguientes datos:
+
+{data_summary}
+
+Basándote ESTRICTAMENTE en estas estadísticas y datos, responde a la siguiente pregunta en español de forma directa y clara. 
+No me des código de Python a menos que te lo pida explícitamente. Si puedes calcular la respuesta con las estadísticas proporcionadas, hazlo y dame el resultado final.
+
+Pregunta del usuario: {prompt}
+"""
                     respuesta = ai_client.chat(augmented_prompt, st.session_state.current_temperature)
                 
                 # 3. Si hay un documento de texto activo
